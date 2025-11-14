@@ -27,6 +27,7 @@ def classify_poker_hand(card_tuples):
         elif sorted_ranks[-4:] == [10, 11, 12, 13] and sorted_ranks[0] == 14:
             is_straight = True
 
+    print(sorted_ranks)
     if is_straight and is_flush and sorted_ranks[-1] == 14:
         return "royal flush"
     elif is_straight and is_flush:
