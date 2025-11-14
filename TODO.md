@@ -1,0 +1,4 @@
+- add dropout
+- at least 2-3 hidden layers
+- add normalize (helps protect against exploding gradients)
+- finish writing generators
