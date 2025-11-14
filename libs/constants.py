@@ -1,0 +1,2 @@
+RANKS = "_?W23456789XJQKA"
+SUITS = "_?W♣♦♥♠"
