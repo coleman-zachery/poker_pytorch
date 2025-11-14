@@ -20,7 +20,7 @@ def generate_straight_flush(card_exceptions=[]):
     return shuffle_hand(hand)
 
 def generate_four_of_a_kind(card_exceptions=[]):
-    eligible_hands = [rank + suit for suit in SUITS[-4:] for rank in RANKS[3:]]
+    eligible_hands = [[rank + suit for suit in SUITS[-4:]] + [card for card in generate_deck() if card not in card_exceptions] for rank in RANKS[3:]]
     return eligible_hands
 
 def generate_full_house(): pass
