@@ -22,12 +22,12 @@ def classify_poker_hand(card_tuples):
     # check for straight (including low-Ace straight)
     is_straight = False
     if len(sorted_ranks) >= 5:
+        print(sorted_ranks, list(range(sorted_ranks[0], sorted_ranks[0] + 5)))
         if sorted_ranks == list(range(sorted_ranks[0], sorted_ranks[0] + 5)):
             is_straight = True
-        elif sorted_ranks[-4:] == [11, 12, 13, 14] and sorted_ranks[0] == 15:
+        elif sorted_ranks[-4:] == [3, 4, 5, 6] and sorted_ranks[0] == 15:
             is_straight = True
 
-    print(sorted_ranks)
     if is_straight and is_flush and sorted_ranks[-1] == 15:
         return "royal flush"
     elif is_straight and is_flush:
