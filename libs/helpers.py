@@ -89,3 +89,6 @@ def shuffle_hand(hand):
 
 def cardinal_subsets(x, n):
     return list(zip(*(x[i:] for i in range(n))))
+
+def random_item(items):
+    return items[torch.randint(len(items), (1,)).item()]
