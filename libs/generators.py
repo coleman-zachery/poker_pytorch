@@ -16,7 +16,7 @@ def generate_royal_flush(card_exceptions=[]):
     return shuffle_hand(hand)
 
 def generate_straight_flush(card_exceptions=[]):
-    eligible_hands = {suit: [cardinal_subsets(RANKS[3:], 5)] for suit in SUITS[-4:]}
+    eligible_hands = {suit: [cardinal_subsets(RANKS[3:-1], 5)] for suit in SUITS[-4:]}
     return eligible_hands
 
 def generate_four_of_a_kind(): pass
