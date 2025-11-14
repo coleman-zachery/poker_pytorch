@@ -87,29 +87,5 @@ def shuffle_hand(hand):
     shuffled = [hand[i] for i in indices]
     return shuffled
 
-def generate_royal_flush(card_exceptions=[]):
-    ranks = RANKS[-5:]
-    exclude_suits = set()
-    for card_exception in card_exceptions:
-        rank_char, suit_char = card_exception
-        if rank_char in ranks:
-            exclude_suits.add(suit_char)
-    suits = [suit for suit in SUITS[3:] if suit not in exclude_suits]
-    if not suits:
-        return None # Cannot generate royal flush with given exceptions
-    suit = suits[torch.randint(len(suits)).item()]
-    hand = [rank + suit for rank in ranks]
-    return shuffle_hand(hand)
-
-def generate_straight_flush(card_exceptions=[]): pass
-def generate_four_of_a_kind(): pass
-def generate_full_house(): pass
-def generate_flush(): pass
-def generate_straight(): pass
-def generate_three_of_a_kind(): pass
-def generate_two_pair(): pass
-def generate_high_card(): pass
-
-def generate_nothing():
-    return ['__', '__', '__', '__', '__']
-
+def cardinal_subsets(x, n):
+    return list(zip(*(x[i:] for i in range(n))))
