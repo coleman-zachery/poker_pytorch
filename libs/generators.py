@@ -67,12 +67,13 @@ def generate_full_house(card_exceptions=[]):
     rank_3 = [rank for rank, count in rank_counts.items() if count >= 3]
     rank_2 = [rank for rank, count in rank_counts.items() if count >= 2]
     for r3 in rank_3:
+        pass
 
-def generate_flush(): pass
-def generate_straight(): pass
-def generate_three_of_a_kind(): pass
-def generate_two_pair(): pass
-def generate_high_card(): pass
+def generate_flush(): return
+def generate_straight(): return
+def generate_three_of_a_kind(): return
+def generate_two_pair(): return
+def generate_high_card(): return
 
 def generate_nothing():
     return ['__', '__', '__', '__', '__']
