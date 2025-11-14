@@ -24,11 +24,11 @@ def classify_poker_hand(card_tuples):
     if len(sorted_ranks) >= 5:
         if sorted_ranks == list(range(sorted_ranks[0], sorted_ranks[0] + 5)):
             is_straight = True
-        elif sorted_ranks[-4:] == [10, 11, 12, 13] and sorted_ranks[0] == 14:
+        elif sorted_ranks[-4:] == [11, 12, 13, 14] and sorted_ranks[0] == 15:
             is_straight = True
 
     print(sorted_ranks)
-    if is_straight and is_flush and sorted_ranks[-1] == 14:
+    if is_straight and is_flush and sorted_ranks[-1] == 15:
         return "royal flush"
     elif is_straight and is_flush:
         return "straight flush"
