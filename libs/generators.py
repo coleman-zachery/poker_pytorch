@@ -13,7 +13,7 @@ def generate_straight_flush(card_exceptions=[]):
     eligible_hands = [[[rank + suit for rank in subset] for subset in cardinal_subsets(RANKS[3:-1], 5)] for suit in SUITS[-4:]]
     for rank, suit in card_exceptions:
         eligible_hands = [hand for suit_hands in eligible_hands for hand in suit_hands if rank + suit not in hand]
-    hand = eligible_hands[torch.randint(len(eligible_hands)).item()]
+    hand = eligible_hands[torch.randint(len(eligible_hands), (1,)).item()]
     return shuffle_hand(hand)
 
 def generate_four_of_a_kind(card_exceptions=[]):
