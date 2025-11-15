@@ -62,7 +62,8 @@ def classify_poker_hand(card_tuples):
     if sorted_rank_counts[0] + wild_ranks >= 2: return "one pair", [sorted_ranks[0]] * 2 + sorted_ranks[1:5]
 
     _ranks = sorted_ranks + [0] * (5 - len(ranks))
-    return "high card", _ranks if _ranks[0] > 0 else "nothing", _ranks
+    if _ranks[0] > 0: return "high card", _ranks 
+    return "nothing", _ranks
 
 def poker_hand_label_to_index(label):
     label_map = {
