@@ -17,17 +17,15 @@ def card_strings_to_tensor(card_strings):
     return card_tensor
 
 def is_sequence(n, _numbers, wilds):
-    numbers = set(numbers)
+    numbers = set(_numbers)
     if not numbers: return wilds >= n
-
 
     _rank_tuples = [i for i, _ in enumerate(RANKS) if i > 2]
     rank_tuples = [_rank_tuples[-1]] + _rank_tuples
 
     for subset in cardinal_subsets(rank_tuples):
-        
-
-
+        if wilds >= numbers - set(subset): return True
+    return False
 
 def classify_poker_hand(card_tuples):
     ranks = []
