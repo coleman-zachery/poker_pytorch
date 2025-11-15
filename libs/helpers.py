@@ -23,6 +23,7 @@ def is_sequence(n, _numbers, wilds):
     _rank_tuples = [i for i, _ in enumerate(RANKS) if i > 2]
     rank_tuples = [_rank_tuples[-1]] + _rank_tuples
 
+    print(rank_tuples)
     for subset in cardinal_subsets(rank_tuples, n):
         if wilds >= numbers - set(subset): return True
     return False
