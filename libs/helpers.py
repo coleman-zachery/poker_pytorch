@@ -1,4 +1,3 @@
-# import RANKS and SUITS from constants.py
 from libs.constants import RANKS, SUITS
 import torch
 
@@ -41,7 +40,7 @@ def classify_poker_hand(card_tuples):
 
     _sorted_rank_counts = sorted(rank_counts.items(), key=lambda x: x[0], reverse=True)
     sorted_ranks, sorted_rank_counts = sorted(_sorted_rank_counts, key=lambda x: x[1], reverse=True)
-    if sorted_rank_counts[0] + wild_ranks >= 5: return "five of a kind", [sorted_ranks[0]]
+    if sorted_rank_counts[0] + wild_ranks >= 5: return "five of a kind", [sorted_ranks[0]] * 5
 
     sequence = find_sequence(5, ranks, wild_ranks)
     is_flush = sorted(suit_counts.values(), reverse=True)[0] + wild_suits >= 5
