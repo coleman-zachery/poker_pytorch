@@ -25,7 +25,7 @@ def is_sequence(n, _numbers, wilds):
 
     print(rank_tuples)
     for subset in cardinal_subsets(rank_tuples, n):
-        if wilds >= numbers - set(subset): return True
+        if wilds >= len(set(subset) - numbers): return True
     return False
 
 def classify_poker_hand(card_tuples):
