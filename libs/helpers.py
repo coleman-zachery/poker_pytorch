@@ -39,8 +39,8 @@ def classify_poker_hand(card_tuples):
         if suit == 2: wild_suits += 1
 
     _sorted_rank_counts = sorted(rank_counts.items(), key=lambda x: x[0], reverse=True)
+    print(_sorted_rank_counts)
     _sorted_ranks, sorted_rank_counts = zip(*sorted(_sorted_rank_counts, key=lambda x: x[1], reverse=True))
-    print("sorted_rank_counts:", sorted_rank_counts)
     sorted_ranks = list(_sorted_ranks)
     if sorted_rank_counts[0] + wild_ranks >= 5: return "five of a kind", [sorted_ranks[0]] * 5
 
