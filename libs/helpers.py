@@ -42,62 +42,24 @@ def classify_poker_hand(poker_hand):
             return "five of a kind", [i] * 5
 
     _requirement = 5 - CARD_MAP[1][1]
-    high_cards = CARD_MAP[-5:]
-    for rank_indexes in cardinal_subsets(list(range(2, 15))[::-1] + [14], 5):
-        wild_column = 0
-
-
-
-
-        wild_column = [rank[1] for rank in high_cards]
+    for i, subset in enumerate(cardinal_subsets(CARD_MAP[:1:-1] + CARD_MAP[-1], 5)):
+        wild_column = [rank[1] for rank in subset]
         for col_i in range(2, 6):
             requirement = _requirement - CARD_MAP[1][col_i]
-            suit_column = [rank[col_i] for rank in high_cards]
+            suit_column = [rank[col_i] for rank in subset]
             if sum([a + b > 0 for a, b in zip(wild_column, suit_column)]) >= requirement:
-                return "royal flush", [14, 13, 12, 11, 10]
+                sequence = [((12 - i - j) % 13) + 2 for j in range(5)]
+                return ("royal flush" if i == 0 else "straight flush"), sequence
 
-        wild_column = [rank[1] for rank in CARD_MAP[2:]]
-
-
-
-    rank_counts = {}
-    wild_ranks = 0
-    for rank, suit in poker_hand:
-        if rank == "W": wild_ranks += 1
-        elif rank in RANK_CHARS:
-            rank_int = RANK_CHARS.index(rank) + 2
-            rank_counts[rank_int] = rank_counts.get(rank_int, 0) + 1
-    sorted_rank_counts = sorted(rank_counts.items(), key=lambda x: (x[0], x[1]), reverse=True)
-    (rank, count), *_ = sorted_rank_counts + [(0, 0)]
-
-    if count + wild_ranks >= 5:
-        return "five of a kind", [rank if wild_ranks < 5 else 14] * 5
+    requirement = 4 - sum(CARD_MAP[1])
+    misc_cards = []
+    for i, row in list(enumerate(CARD_MAP))[:1:-1]:
+        if sum(row) >= requirement:
+            sorted_ranks = [rank for rank in sort_poker_hand(poker_hand) if rank != i]
+            return "four of a kind", [i] * 4 + [sorted_ranks[0]]
 
 
 
-
-
-
-
-    ranks = []
-    rank_counts = {}
-    wild_ranks = 0
-    suit_counts = {}
-    wild_suits = 0
-    for rank, suit in card_tuples:
-        if rank > 2:
-            ranks.append(rank)
-            rank_counts[rank] = rank_counts.get(rank, 0) + 1
-        if rank == 2: wild_ranks += 1
-        if suit > 2: suit_counts[suit] = suit_counts.get(suit, 0) + 1
-        if suit == 2: wild_suits += 1
-
-    sequence = find_sequence(5, ranks, wild_ranks)
-    is_flush = sorted(suit_counts.values(), reverse=True)[0] + wild_suits >= 5
-    if sequence and list(sequence) == list(range(11, 16)) and is_flush: return "royal flush", sequence
-    if sequence and is_flush: return "straight flush", sequence
-
-    if sorted_rank_counts[0] + wild_ranks == 4: return "four of a kind", [sorted_ranks[0]] * 4 + [sorted_ranks[1]]
 
 
     kind_2 = sorted_rank_counts[1] + wild_ranks - 2
