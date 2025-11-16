@@ -46,7 +46,7 @@ def classify_poker_hand(card_tuples):
 
     sequence = find_sequence(5, ranks, wild_ranks)
     is_flush = sorted(suit_counts.values(), reverse=True)[0] + wild_suits >= 5
-    if list(sequence) == list(range(11, 16)) and is_flush: return "royal flush", sequence
+    if sequence and list(sequence) == list(range(11, 16)) and is_flush: return "royal flush", sequence
     if sequence and is_flush: return "straight flush", sequence
 
     if sorted_rank_counts[0] + wild_ranks == 4: return "four of a kind", [sorted_ranks[0]] * 4 + [sorted_ranks[1]]
