@@ -15,8 +15,8 @@ def card_strings_to_tensor(card_strings):
     card_tensor = torch.tensor(card_tuples, dtype=torch.long)
     return card_tensor
 
-def find_sequence(size, _numbers, num_wilds):
-    numbers = set(_numbers)
+def find_sequence(size, rank_counts, num_wilds):
+    numbers = set(rank_counts.keys()) - set(0)
     if not numbers: return num_wilds >= size
     _rank_tuples = [i for i, _ in enumerate(RANKS) if i > 2]
     rank_tuples = [_rank_tuples[-1]] + _rank_tuples # allow wrapping high card to low-side
@@ -24,7 +24,50 @@ def find_sequence(size, _numbers, num_wilds):
         if num_wilds >= len(set(subset) - numbers): return subset
     return None
 
-def classify_poker_hand(card_tuples):
+#RANKS = "_?W23456789XJQKA"
+#SUITS = "_?W♣♦♥♠"
+
+def classify_poker_hand(poker_hand):
+
+    RANK_CHARS = "_W23456789XJQKA"
+    SUIT_CHARS = "_W♣♦♥♠"
+
+    CARD_MAP = [[0] * len(SUIT_CHARS)] * len(RANK_CHARS)
+    for rank, suit in poker_hand:
+        CARD_MAP[RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
+
+    requirement = 5 - sum(CARD_MAP[1])
+    for i, row in list(enumerate(CARD_MAP))[:1:-1]:
+        if sum(row) >= requirement:
+            return "five of a kind", [i] * 5
+
+    _requirement = 5 - CARD_MAP[1][1]
+    for i, column in list(enumerate(CARD_MAP[0]))[:1:-1]:
+        
+
+
+
+
+
+    rank_counts = {}
+    wild_ranks = 0
+    for rank, suit in poker_hand:
+        if rank == "W": wild_ranks += 1
+        elif rank in RANK_CHARS:
+            rank_int = RANK_CHARS.index(rank) + 2
+            rank_counts[rank_int] = rank_counts.get(rank_int, 0) + 1
+    sorted_rank_counts = sorted(rank_counts.items(), key=lambda x: (x[0], x[1]), reverse=True)
+    (rank, count), *_ = sorted_rank_counts + [(0, 0)]
+
+    if count + wild_ranks >= 5:
+        return "five of a kind", [rank if wild_ranks < 5 else 14] * 5
+
+
+
+
+
+
+
     ranks = []
     rank_counts = {}
     wild_ranks = 0
@@ -37,12 +80,6 @@ def classify_poker_hand(card_tuples):
         if rank == 2: wild_ranks += 1
         if suit > 2: suit_counts[suit] = suit_counts.get(suit, 0) + 1
         if suit == 2: wild_suits += 1
-
-    _sorted_rank_counts = sorted(rank_counts.items(), key=lambda x: x[0], reverse=True)
-    _sorted_rank_counts += [(0, 0)] * (2 - len(_sorted_rank_counts))
-    _sorted_ranks, sorted_rank_counts = zip(*sorted(_sorted_rank_counts, key=lambda x: x[1], reverse=True))
-    sorted_ranks = list(_sorted_ranks)
-    if sorted_rank_counts[0] + wild_ranks >= 5: return "five of a kind", [sorted_ranks[0]] * 5
 
     sequence = find_sequence(5, ranks, wild_ranks)
     is_flush = sorted(suit_counts.values(), reverse=True)[0] + wild_suits >= 5
