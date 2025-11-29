@@ -1,1 +1,3 @@
 .venv
+.github.token
+.git_config.sh
