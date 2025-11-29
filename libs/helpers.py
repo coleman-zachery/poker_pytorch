@@ -36,10 +36,16 @@ def classify_poker_hand(poker_hand):
     for rank, suit in poker_hand:
         CARD_MAP[RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
 
-    requirement = 5 - sum(CARD_MAP[1])
+    wild_ranks = sum(CARD_MAP[1])
+    rank_counts = {}
+    max_requirement = 5 - wild_ranks
     for i, row in list(enumerate(CARD_MAP))[:1:-1]:
-        if sum(row) >= requirement:
+        if (row_sum := sum(row)) >= max_requirement:
             return "five of a kind", [i] * 5
+        rank_counts[row_sum] = rank_counts.get(row_sum, []) + [i]
+
+    #    sorted_ranks = [rank for rank in sort_poker_hand(poker_hand) if rank != i]
+    #return "four of a kind", [i] * 4 + [sorted_ranks[0]]
 
     _requirement = 5 - CARD_MAP[1][1]
     for i, subset in enumerate(cardinal_subsets(CARD_MAP[:1:-1] + CARD_MAP[-1], 5)):
@@ -51,13 +57,24 @@ def classify_poker_hand(poker_hand):
                 sequence = [((12 - i - j) % 13) + 2 for j in range(5)]
                 return ("royal flush" if i == 0 else "straight flush"), sequence
 
-    requirement = 4 - sum(CARD_MAP[1])
-    misc_cards = []
-    for i, row in list(enumerate(CARD_MAP))[:1:-1]:
-        if sum(row) >= requirement:
-            sorted_ranks = [rank for rank in sort_poker_hand(poker_hand) if rank != i]
-            return "four of a kind", [i] * 4 + [sorted_ranks[0]]
-
+#   		0	1		2	3	4	5
+#   		_	W		1	2	3	4
+#   0	_	0	0		0	0	0	0
+#   1	W	0	0		0	0	0	0
+#   								
+#   2	2	0	0		0	0	0	0
+#   3	3	0	0		0	0	0	0
+#   4	4	0	0		0	0	0	0
+#   5	5	0	0		0	0	0	0
+#   6	6	0	0		0	0	0	0
+#   7	7	0	0		0	0	0	0
+#   8	8	0	0		0	0	0	0
+#   9	9	0	0		0	0	0	0
+#   10	X	0	0		0	0	0	0
+#   11	J	0	0		0	0	0	0
+#   12	Q	0	0		0	0	0	0
+#   13	K	0	0		0	0	0	0
+#   14	A	0	0		1	0	0	0
 
 
 
