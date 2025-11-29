@@ -2,7 +2,7 @@ from libs.constants import RANKS, SUITS
 import torch
 
 def cardinal_subsets(x, n):
-    return zip(*(x[i:] for i in range(n)))
+    return zip(*(x[i:len(x)-n+i+1] for i in range(n)))
 
 def card_str_to_tuple(card_str):
     rank_char, suit_char = card_str
@@ -37,17 +37,18 @@ def classify_poker_hand(poker_hand):
         CARD_MAP[RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
 
     wild_ranks = sum(CARD_MAP[1])
-    rank_counts = {}
     max_requirement = 5 - wild_ranks
+
+    # five of a kind (cache other kinds)
+    rank_counts = {}
     for i, row in list(enumerate(CARD_MAP))[:1:-1]:
         if (row_sum := sum(row)) >= max_requirement:
             return "five of a kind", [i] * 5
         rank_counts[row_sum] = rank_counts.get(row_sum, []) + [i]
-
     #    sorted_ranks = [rank for rank in sort_poker_hand(poker_hand) if rank != i]
     #return "four of a kind", [i] * 4 + [sorted_ranks[0]]
 
-    _requirement = 5 - CARD_MAP[1][1]
+    # royal and straight flush (cache straights and flushes)
     for i, subset in enumerate(cardinal_subsets(CARD_MAP[:1:-1] + CARD_MAP[-1], 5)):
         wild_column = [rank[1] for rank in subset]
         for col_i in range(2, 6):
@@ -74,7 +75,7 @@ def classify_poker_hand(poker_hand):
 #   11	J	0	0		0	0	0	0
 #   12	Q	0	0		0	0	0	0
 #   13	K	0	0		0	0	0	0
-#   14	A	0	0		1	0	0	0
+#   14	A	0	0		0	0	0	0
 
 
 
