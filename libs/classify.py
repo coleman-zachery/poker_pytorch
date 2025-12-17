@@ -3,6 +3,25 @@ from libs.constants import RANKS, SUITS
 def cardinal_subsets(x, n):
     return zip(*(x[i:len(x)-n+i+1] for i in range(n)))
 
+#   		0	1		2	3	4	5
+#   		_	W		♣	♦	♥	♠
+#   0	_	0	0		0	0	0	0
+#   1	W	0	0		0	0	0	0
+#   								
+#   2	2	0	0		0	0	0	0
+#   3	3	0	0		0	0	0	0
+#   4	4	0	0		0	0	0	0
+#   5	5	0	0		0	0	0	0
+#   6	6	0	0		0	0	0	0
+#   7	7	0	0		0	0	0	0
+#   8	8	0	0		0	0	0	0
+#   9	9	0	0		0	0	0	0
+#   10	X	0	0		0	0	0	0
+#   11	J	0	0		0	0	0	0
+#   12	Q	0	0		0	0	0	0
+#   13	K	0	0		0	0	0	0
+#   14	A	0	0		0	0	0	0
+
 #RANKS = "_?W23456789XJQKA"
 #SUITS = "_?W♣♦♥♠"
 
@@ -28,15 +47,13 @@ def classify_poker_hand(poker_hand):
     for i, row in list(enumerate(CARD_RANKS, start=2))[::-1]:
         if (row_sum := sum(row)) >= rank_requirement:
             return "five of a kind", [i] * 5
-        if (row_sum_wilds := row_sum + wild_ranks) > 0:
-            rank_counts[row_sum_wilds] = rank_counts.get(row_sum_wilds, []) + [i]
+        if row_sum > 0:
+            rank_counts[row_sum] = rank_counts.get(row_sum, []) + [i]
 
     # royal and straight flush (cache straights and flushes)
     straight_flush_requirement = _REQUIREMENT - WILD_WILD
     suitless_straight = None
-    print(CARD_MAP)
-    for i, subset in enumerate(cardinal_subsets(CARD_MAP[::-1] + CARD_MAP[-1], 5)):
-        print(i, subset)
+    for i, subset in enumerate(cardinal_subsets(CARD_MAP[::-1] + [CARD_MAP[-1]], 5)):
         ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
 
         for j, suit_ranks in enumerate(ranks_suits):
@@ -47,63 +64,74 @@ def classify_poker_hand(poker_hand):
 
         requirement = straight_flush_requirement - WILD__ - sum(WILD_SUITS)
         sequence_count = sum([sum(rank) > 0 for rank in subset])
-        if suitless_straight is None and sequence_count >= requirement:
+        if (suitless_straight is None) and sequence_count >= requirement:
             suitless_straight = "straight", list(range(14-i,9-i,-1))
 
-#   		0	1		2	3	4	5
-#   		_	W		♣	♦	♥	♠
-#   0	_	0	0		0	0	0	0
-#   1	W	0	0		0	0	0	0
-#   								
-#   2	2	0	0		0	0	0	0
-#   3	3	0	0		0	0	0	0
-#   4	4	0	0		0	0	0	0
-#   5	5	0	0		0	0	0	0
-#   6	6	0	0		0	0	0	0
-#   7	7	0	0		0	0	0	0
-#   8	8	0	0		0	0	0	0
-#   9	9	0	0		0	0	0	0
-#   10	X	0	0		0	0	0	0
-#   11	J	0	0		0	0	0	0
-#   12	Q	0	0		0	0	0	0
-#   13	K	0	0		0	0	0	0
-#   14	A	0	0		0	0	0	0
-
-    print(rank_counts)
-    return
+    rank_items = []
+    for key, values in rank_counts.items():
+        if key == "W": continue
+        for value in values:
+            rank_items += [value] * key
+    flat_ranks = sorted([item for row in rank_items for item in row], reverse=True)
+    print(rank_items)
 
     # four of a kind
-    #    sorted_ranks = [rank for rank in sort_poker_hand(poker_hand) if rank != i]
-    #return "four of a kind", [i] * 4 + [sorted_ranks[0]]
+    if kind_4 := rank_counts.get(4 - rank_counts["W"], None):
+        match_4 = kind_4[0]
+        remainder = [rank for rank in flat_ranks if rank != match_4]
+        _return = [match_4] * 4 + remainder[:_REQUIREMENT - 4] + [0] * _REQUIREMENT
+        return "four of a kind", _return[:_REQUIREMENT]
 
     # full house
-    kind_2 = sorted_rank_counts[1] + wild_ranks - 2
-    if kind_2 >= 0 and sorted_rank_counts[0] + kind_2 >= 3: return "full house", [sorted_ranks[0]] * 3 + [sorted_ranks[1]] * 2
+    kind_2 = rank_counts.get(2, [])
+    if (rank_counts["W"] == 1) and len(kind_2) > 1:
+            return "full house", [kind_2[0]] * 3 + [kind_2[1]] * 2
+    if kind_3 := rank_counts.get(3, None):
+        match_3, *_kind_2 = kind_3
+        sorted_kind_2 = sorted(kind_2 + _kind_2, reverse=True)
+        if len(sorted_kind_2) > 0:
+            return "full house", [match_3] * 3 + [sorted_kind_2[0]] * 2
 
     # flush
-    flush_requirement = _requirement - RANKLESS_WILD
-    _, _, *suits = list(zip(*CARD_MAP[2:]))
-    for i, suit in enumerate(suits):
-        suit_count = sum(suit) + RANKLESS_SUITS[i] + WILD_SUITS[i]
-        if suit_count >= flush_requirement:
-            return "flush", None
+    flush = None
+    wild_suits = sum([__WILD, WILD_WILD, sum(RANKS_WILD)])
+    flush_requirement = _REQUIREMENT - wild_suits
+    for __suit, wild_suit, ranks_suit in zip(*[__SUITS] + [WILD_SUITS] + [RANKS_SUITS]):
+        if sum([__suit, wild_suit, sum(ranks_suit)]) >= flush_requirement:
+            flush_ranks = sorted([14] * (wild_suits + wild_suit) + [item for row in [[rank] * count for rank, count in enumerate(ranks_suit, start=2) if count > 0] for item in row] + [0] * _REQUIREMENT, reverse=True)[:_REQUIREMENT]
+            if (flush is None) or flush_ranks > flush[1]:
+                flush = "flush", flush_ranks
+    if flush: return flush
 
-    # straight
-    if suitless_straight: return suitless_straight
+    #  5    straight
+    if straight:
+        return straight
 
-    # three of a kind
-    if sorted_rank_counts[0] + wild_ranks >= 3: return "three of a kind", [sorted_ranks[0]] * 3 + sorted_ranks[1:3]
+    #  4    three of a kind
+    if kind_3 := rank_counts.get(3 - rank_counts["W"], None):
+        match_3 = kind_3[0]
+        remainder = [rank for rank in flat_ranks if rank != match_3]
+        _return = [match_3] * 3 + remainder[:_REQUIREMENT - 3] + [0] * _REQUIREMENT
+        return 4, "three of a kind", _return[:_REQUIREMENT]
 
-    # two pair
-    kind_2 = sorted_rank_counts[1] + wild_ranks - 2
-    if kind_2 >= 0 and sorted_rank_counts[0] + kind_2 >= 2: return "two pair", [sorted_ranks[0]] * 2 + [sorted_ranks[1]] * 2 + [sorted_ranks[2]]
+    #  3    two pair
+    if len(kind_2) > 1:
+        match_1, match_2, *_ = kind_2
+        remainder = [rank for rank in flat_ranks if rank not in [match_1, match_2]]
+        _return = [match_1] * 2 + [match_2] * 2 + remainder[:_REQUIREMENT - 4] + [0] * _REQUIREMENT
+        return 3, "two pair", _return[:_REQUIREMENT]
 
-    # one pair
-    if sorted_rank_counts[0] + wild_ranks >= 2: return "one pair", [sorted_ranks[0]] * 2 + sorted_ranks[1:5]
+    #  2    one pair
+    if kind_2 := rank_counts.get(2 - rank_counts["W"], None):
+        match_2 = kind_2[0]
+        remainder = [rank for rank in flat_ranks if rank != match_2]
+        _return = [match_2] * 2 + remainder[:_REQUIREMENT - 2] + [0] * _REQUIREMENT
+        return 2, "one pair", _return[:_REQUIREMENT]
 
-    # high card
-    _ranks = sorted_ranks + [0] * (5 - len(ranks))
-    if _ranks[0] > 0: return "high card", _ranks 
+    #  1    high card
+    if (len(remainder) > 0) and remainder[0] > 0:
+        _return = remainder + [0] * (_REQUIREMENT - 1)
+        return 1, "high card", _return[:_REQUIREMENT]
 
-    # nothing
-    return "nothing", _ranks
+    #  0    nothing
+    return 0, "nothing", [0] * _REQUIREMENT
