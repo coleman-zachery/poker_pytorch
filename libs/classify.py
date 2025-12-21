@@ -1,8 +1,7 @@
-from libs.constants import RANKS, SUITS
-
 def cardinal_subsets(x, n):
     return zip(*(x[i:len(x)-n+i+1] for i in range(n)))
 
+#   CARD_MAP
 #   		0	1		2	3	4	5
 #   		_	W		♣	♦	♥	♠
 #   0	_	0	0		0	0	0	0
@@ -22,9 +21,6 @@ def cardinal_subsets(x, n):
 #   13	K	0	0		0	0	0	0
 #   14	A	0	0		0	0	0	0
 
-#RANKS = "_?W23456789XJQKA"
-#SUITS = "_?W♣♦♥♠"
-
 def classify_poker_hand(poker_hand):
     RANK_CHARS = "_W23456789XJQKA"
     SUIT_CHARS = "_W♣♦♥♠"
@@ -36,10 +32,10 @@ def classify_poker_hand(poker_hand):
         ( WILD__,  WILD_WILD,  *WILD_SUITS),
                                *CARD_RANKS
     ) = CARD_MAP
-    (    RANKS__, RANKS_WILD, *RANKS_SUITS) = list(zip(*CARD_RANKS))
+    (RANKS__, RANKS_WILD, *RANKS_SUITS) = list(zip(*CARD_RANKS))
     _REQUIREMENT = 5
 
-    # five of a kind (cache other kinds)
+    # 11    five of a kind (cache other kinds)
     rank_counts = {}
     wild_ranks = sum([WILD__, WILD_WILD, sum(WILD_SUITS)])
     rank_counts["W"] = wild_ranks
@@ -50,9 +46,9 @@ def classify_poker_hand(poker_hand):
         if row_sum > 0:
             rank_counts[row_sum] = rank_counts.get(row_sum, []) + [i]
 
-    # royal and straight flush (cache straights and flushes)
+    # 10    royal flush     /  9    straight flush (track straights for later)
     straight_flush_requirement = _REQUIREMENT - WILD_WILD
-    suitless_straight = None
+    straight = None
     for i, subset in enumerate(cardinal_subsets(CARD_MAP[::-1] + [CARD_MAP[-1]], 5)):
         ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
 
@@ -64,8 +60,8 @@ def classify_poker_hand(poker_hand):
 
         requirement = straight_flush_requirement - WILD__ - sum(WILD_SUITS)
         sequence_count = sum([sum(rank) > 0 for rank in subset])
-        if (suitless_straight is None) and sequence_count >= requirement:
-            suitless_straight = "straight", list(range(14-i,9-i,-1))
+        if (straight is None) and sequence_count >= requirement:
+            straight = 5, "straight", list(range(14-i,9-i,-1))
 
     rank_items = []
     for key, values in rank_counts.items():
@@ -75,24 +71,24 @@ def classify_poker_hand(poker_hand):
     flat_ranks = sorted([item for row in rank_items for item in row], reverse=True)
     print(rank_items)
 
-    # four of a kind
+    #  8    four of a kind
     if kind_4 := rank_counts.get(4 - rank_counts["W"], None):
         match_4 = kind_4[0]
         remainder = [rank for rank in flat_ranks if rank != match_4]
         _return = [match_4] * 4 + remainder[:_REQUIREMENT - 4] + [0] * _REQUIREMENT
-        return "four of a kind", _return[:_REQUIREMENT]
+        return 8, "four of a kind", _return[:_REQUIREMENT]
 
-    # full house
+    #  7    full house
     kind_2 = rank_counts.get(2, [])
     if (rank_counts["W"] == 1) and len(kind_2) > 1:
-            return "full house", [kind_2[0]] * 3 + [kind_2[1]] * 2
+            return 7, "full house", [kind_2[0]] * 3 + [kind_2[1]] * 2
     if kind_3 := rank_counts.get(3, None):
         match_3, *_kind_2 = kind_3
         sorted_kind_2 = sorted(kind_2 + _kind_2, reverse=True)
         if len(sorted_kind_2) > 0:
-            return "full house", [match_3] * 3 + [sorted_kind_2[0]] * 2
+            return 7, "full house", [match_3] * 3 + [sorted_kind_2[0]] * 2
 
-    # flush
+    #  6    flush
     flush = None
     wild_suits = sum([__WILD, WILD_WILD, sum(RANKS_WILD)])
     flush_requirement = _REQUIREMENT - wild_suits
@@ -100,7 +96,7 @@ def classify_poker_hand(poker_hand):
         if sum([__suit, wild_suit, sum(ranks_suit)]) >= flush_requirement:
             flush_ranks = sorted([14] * (wild_suits + wild_suit) + [item for row in [[rank] * count for rank, count in enumerate(ranks_suit, start=2) if count > 0] for item in row] + [0] * _REQUIREMENT, reverse=True)[:_REQUIREMENT]
             if (flush is None) or flush_ranks > flush[1]:
-                flush = "flush", flush_ranks
+                flush = 6, "flush", flush_ranks
     if flush: return flush
 
     #  5    straight
