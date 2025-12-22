@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 def cardinal_subsets(x, n):
     return zip(*(x[i:len(x)-n+i+1] for i in range(n)))
 
@@ -21,34 +23,45 @@ def cardinal_subsets(x, n):
 #   13	K	0	0		0	0	0	0
 #   14	A	0	0		0	0	0	0
 
-def classify_poker_hand(poker_hand):
+def player_winner_index(shared_cards, *player_hands):
+    _REQUIREMENT = 5
     RANK_CHARS = "_W23456789XJQKA"
     SUIT_CHARS = "_W♣♦♥♠"
-    CARD_MAP = [[0 for _ in SUIT_CHARS] for _ in RANK_CHARS]
-    for rank, suit in poker_hand:
-        CARD_MAP[RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
-    (
-        (     __,     __WILD,     *__SUITS),
-        ( WILD__,  WILD_WILD,  *WILD_SUITS),
-                               *CARD_RANKS
-    ) = CARD_MAP
-    (RANKS__, RANKS_WILD, *RANKS_SUITS) = list(zip(*CARD_RANKS))
-    _REQUIREMENT = 5
 
-    # 11    five of a kind (cache other kinds)
-    rank_counts = {}
-    wild_ranks = sum([WILD__, WILD_WILD, sum(WILD_SUITS)])
-    rank_counts["W"] = wild_ranks
-    rank_requirement = _REQUIREMENT - wild_ranks
-    for i, row in list(enumerate(CARD_RANKS, start=2))[::-1]:
-        if (row_sum := sum(row)) >= rank_requirement:
-            return "five of a kind", [i] * 5
-        if row_sum > 0:
-            rank_counts[row_sum] = rank_counts.get(row_sum, []) + [i]
+    SHARED_CARD_MAP = [[0 for _ in SUIT_CHARS] for _ in RANK_CHARS]
+    for rank, suit in shared_cards:
+        SHARED_CARD_MAP[RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
 
-    # 10    royal flush     /  9    straight flush (track straights for later)
+    PLAYER_CARD_MAPS = []
+    for i, player_hand in enumerate(player_hands):
+        PLAYER_CARD_MAPS += [deepcopy(SHARED_CARD_MAP)]
+        for rank, suit in player_hand:
+            PLAYER_CARD_MAPS[i][RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
+
+    # helper variables
+    BLANK_ROW, WILDS_ROW, *RANK_ROWS = zip(*PLAYER_CARD_MAPS)
+    BLANK_BLANK, BLANK_WILDS, *BLANK_SUITS = zip(*BLANK_ROW)
+    WILDS_BLANK, WILDS_WILDS, *WILDS_SUITS = zip(*WILDS_ROW)
+    RANKS_BLANK, RANKS_WILDS, *RANKS_SUITS = zip(*[list(zip(*player)) for player in zip(*RANK_ROWS)])
+
+    # five of a kind (track number of cards in each rank for later kinds)
+    rank_counts = []
+    for player_wilds in WILDS_ROW: rank_counts.append({"W": sum(player_wilds)})
+    for rank, row in reversed(list(enumerate(RANK_ROWS, start=2))):
+        winning_players = []
+        for i, player in enumerate(row):
+            if (row_sum := sum(player)) >= _REQUIREMENT - rank_counts[i]["W"]:
+                winning_players.append(i)
+            if row_sum > 0:
+                rank_counts[i][row_sum] = rank_counts[i].get(row_sum, []) + [rank]
+        if len(winning_players) > 0:
+            return winning_players, ("five of a kind", [rank] * 5)
+
+    return None
+
+    # royal flush / straight flush (track straights for later)
     straight_flush_requirement = _REQUIREMENT - WILD_WILD
-    straight = None
+    straight = None # change CARD_MAP here to be RANKS_ + WILD_
     for i, subset in enumerate(cardinal_subsets(CARD_MAP[::-1] + [CARD_MAP[-1]], 5)):
         ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
 

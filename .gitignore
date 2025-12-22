@@ -1,2 +1,3 @@
 .venv
 .git_push.sh
+**__pycache__
