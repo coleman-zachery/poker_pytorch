@@ -39,7 +39,8 @@ def player_winner_index(shared_cards, *player_hands):
             PLAYER_CARD_MAPS[i][RANK_CHARS.index(rank)][SUIT_CHARS.index(suit)] += 1
 
     # helper variables
-    BLANK_ROW, WILDS_ROW, *RANK_ROWS = zip(*PLAYER_CARD_MAPS)
+    BLANK_ROW, WILDS_ROW, *_RANK_ROWS = zip(*PLAYER_CARD_MAPS)
+    RANK_ROWS = [_RANK_ROWS[-1]] + _RANK_ROWS
     BLANK_BLANK, BLANK_WILDS, *BLANK_SUITS = zip(*BLANK_ROW)
     WILDS_BLANK, WILDS_WILDS, *WILDS_SUITS = zip(*WILDS_ROW)
     RANKS_BLANK, RANKS_WILDS, *RANKS_SUITS = zip(*[list(zip(*player)) for player in zip(*RANK_ROWS)])
@@ -47,34 +48,40 @@ def player_winner_index(shared_cards, *player_hands):
     # five of a kind (track number of cards in each rank for later kinds)
     rank_counts = []
     for player_wilds in WILDS_ROW: rank_counts.append({"W": sum(player_wilds)})
-    for rank, row in reversed(list(enumerate(RANK_ROWS, start=2))):
+    for rank, row in reversed(list(enumerate(RANK_ROWS[1:], start=2))):
         winning_players = []
-        for i, player in enumerate(row):
-            if (row_sum := sum(player)) >= _REQUIREMENT - rank_counts[i]["W"]:
-                winning_players.append(i)
+        for player_i, player_row in enumerate(row):
+            if (row_sum := sum(player_row)) >= _REQUIREMENT - rank_counts[i]["W"]:
+                winning_players.append(player_i)
             if row_sum > 0:
-                rank_counts[i][row_sum] = rank_counts[i].get(row_sum, []) + [rank]
+                rank_counts[player_i][row_sum] = rank_counts[player_i].get(row_sum, []) + [rank]
         if len(winning_players) > 0:
             return winning_players, ("five of a kind", [rank] * 5)
 
+    # royal flush / straight flush (track straights for later)
+    player_straights = [None for player in player_hands]
+    for rank, subsets in reversed(list(enumerate(cardinal_subsets(RANK_ROWS, 5), start=5))):
+        winning_players = []
+        for player_i, player_subset in enumerate(zip(*subsets)):
+            return player_subset, list(zip(*player_subset))
+
     return None
 
-    # royal flush / straight flush (track straights for later)
-    straight_flush_requirement = _REQUIREMENT - WILD_WILD
-    straight = None # change CARD_MAP here to be RANKS_ + WILD_
-    for i, subset in enumerate(cardinal_subsets(CARD_MAP[::-1] + [CARD_MAP[-1]], 5)):
-        ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
+#        ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
+#
+#        for j, suit_ranks in enumerate(ranks_suits):
+#            requirement = straight_flush_requirement - WILD_SUITS[j]
+#            sequence_count = sum([a + b > 0 for a, b in zip(ranks_wild, suit_ranks)])
+#            if sequence_count >= requirement:
+#                return ("royal flush" if i == 0 else "straight flush"), list(range(14-i,9-i,-1))
+#
+#        requirement = straight_flush_requirement - WILD__ - sum(WILD_SUITS)
+#        sequence_count = sum([sum(rank) > 0 for rank in subset])
+#        if (straight is None) and sequence_count >= requirement:
+#            straight = 5, "straight", list(range(14-i,9-i,-1))
 
-        for j, suit_ranks in enumerate(ranks_suits):
-            requirement = straight_flush_requirement - WILD_SUITS[j]
-            sequence_count = sum([a + b > 0 for a, b in zip(ranks_wild, suit_ranks)])
-            if sequence_count >= requirement:
-                return ("royal flush" if i == 0 else "straight flush"), list(range(14-i,9-i,-1))
 
-        requirement = straight_flush_requirement - WILD__ - sum(WILD_SUITS)
-        sequence_count = sum([sum(rank) > 0 for rank in subset])
-        if (straight is None) and sequence_count >= requirement:
-            straight = 5, "straight", list(range(14-i,9-i,-1))
+
 
     rank_items = []
     for key, values in rank_counts.items():
