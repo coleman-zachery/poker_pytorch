@@ -51,7 +51,8 @@ def player_winner_index(shared_cards, *player_hands):
     for rank, row in reversed(list(enumerate(RANK_ROWS[1:], start=2))):
         winning_players = []
         for player_i, player_row in enumerate(row):
-            if (row_sum := sum(player_row)) >= _REQUIREMENT - rank_counts[i]["W"]:
+            REQUIREMENT = _REQUIREMENT - rank_counts[i]["W"]
+            if (row_sum := sum(player_row)) >= REQUIREMENT:
                 winning_players.append(player_i)
             if row_sum > 0:
                 rank_counts[player_i][row_sum] = rank_counts[player_i].get(row_sum, []) + [rank]
@@ -61,35 +62,36 @@ def player_winner_index(shared_cards, *player_hands):
     # royal flush / straight flush (track straights for later)
     player_straights = [None for player in player_hands]
     for rank, subsets in reversed(list(enumerate(cardinal_subsets(RANK_ROWS, 5), start=5))):
+        rank_sequence = list(range(i, i-5, -1))
         winning_players = []
         for player_i, player_subset in enumerate(zip(*subsets)):
-            return player_subset, list(zip(*player_subset))
-
-    return None
-
-#        ranks__, ranks_wild, *ranks_suits = list(zip(*subset[::-1]))
-#
-#        for j, suit_ranks in enumerate(ranks_suits):
-#            requirement = straight_flush_requirement - WILD_SUITS[j]
-#            sequence_count = sum([a + b > 0 for a, b in zip(ranks_wild, suit_ranks)])
-#            if sequence_count >= requirement:
-#                return ("royal flush" if i == 0 else "straight flush"), list(range(14-i,9-i,-1))
-#
-#        requirement = straight_flush_requirement - WILD__ - sum(WILD_SUITS)
-#        sequence_count = sum([sum(rank) > 0 for rank in subset])
-#        if (straight is None) and sequence_count >= requirement:
-#            straight = 5, "straight", list(range(14-i,9-i,-1))
-
-
-
+            ranks_blanks, ranks_wilds, *ranks_suits = zip(*player_subset)
+            player_ranks_wilds = list(zip(*WILDS_SUITS))[player_i]
+            # use `ranks_wilds` and then `ranks_blanks` for straights
+            REQUIREMENT = _REQUIREMENT - rank_counts[player_i]["W"]
+            for suit, suit_wilds in zip(ranks_suits, player_ranks_wilds):
+                requirement = REQUIREMENT - suit_wilds
+                sequence_count = sum([a + b > 0 for a, b in zip(suit, ranks_wilds)])
+                if sequence_count >= requirement:
+                    winning_players.append(player_i)
+                    break
+            else: # look for regular straight
+                requirement = _REQUIREMENT - sum(WILDS_ROW[player_i])
+                sequence_count = sum([sum(rank) > 0 for rank in player_subset])
+                if (player_straights[player_i] is None) and sequence_count >= requirement:
+                    player_straights[player_i] = rank_sequence
+        if len(winning_players) > 0:
+            return winning_players, ("royal flush" if rank == 14 else "straight flush", rank_sequence)
 
     rank_items = []
-    for key, values in rank_counts.items():
-        if key == "W": continue
-        for value in values:
-            rank_items += [value] * key
-    flat_ranks = sorted([item for row in rank_items for item in row], reverse=True)
-    print(rank_items)
+    for player_rank_counts in rank_counts:
+        _list = []
+        for key, values in player_rank_counts.items():
+            if key == "W": continue
+            for value in values:
+                _list.append([value] * key)
+        flat_ranks = sorted([item for row in _list for item in row], reverse=True)
+        rank_items.append(flat_ranks)
 
     #  8    four of a kind
     if kind_4 := rank_counts.get(4 - rank_counts["W"], None):
